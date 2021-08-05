@@ -1,7 +1,7 @@
 #include "stm32f1xx_hal.h"
 
 #define ABS_ENCODER_MODE // When use absolute encoder, uncomment this
-//#define POSITION_CONTROL // When work under position mode, uncomment this
+#define POSITION_CONTROL // When work under position mode, uncomment this
 
 /* 
  * Should use one of the mode, SPI mode or PWM mode 

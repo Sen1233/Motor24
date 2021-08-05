@@ -14,41 +14,41 @@
 #include "pid_regulator.h"
 #include "abs_encoder_pos_fdbk.h"
 
-/* Define positon control structure */
+/* D定义位置控制结构体 */
 typedef struct
 {	
 	/* HW Settings */
-  TIM_TypeDef * TIMx;   /*!< Timer used for ENCODER sensor management.*/
+  TIM_TypeDef * TIMx;   /*!< 用于编码器传感器管理的定时器 */
 	
-	volatile int32_t hMeasuredAngle; /* Real rotor Angle */
-	volatile int32_t hTargetAngle;   /* Target angle */
-	volatile int32_t hError_Angle;   /* Error angle */
+	volatile int32_t hMeasuredAngle; /* 实际转子角度 */
+	volatile int32_t hTargetAngle;   /* 目标角度 */
+	volatile int32_t hError_Angle;   /* 误差角度 */
 	
-	int16_t Control_Speed;           /* Speed control value */
-	int16_t Real_Speed;	             /* Real average speed */
-	uint16_t Duration_ms;            /* Speed ramp, used for speed accelarate */
-	int16_t Set_Speed;               /* Position control set speed */
+	int16_t Control_Speed;           /* 速度控制值 */
+	int16_t Real_Speed;	             /* 实际平均速度 */
+	uint16_t Duration_ms;            /* 持续时间, 速度斜坡, 用于速度加速 */
+	int16_t Set_Speed;               /* 位置控制设置速度 */
 
-	uint16_t Position_Gain;          /* Position Kp gain */
-	uint16_t Postiion_Div;           /* Position Kp divider */
+	uint16_t Position_Gain;          /* 位置Kp增益 */
+	uint16_t Postiion_Div;           /* 位置Kp除法器 */
 	
-	uint16_t Speed_ACC_Gain;         /* Speed accelarate Kp gain */
-	uint16_t Speed_ACC_Div;          /* Speed accelarate Kp divider */
-	uint16_t Speed_ACC_Count;        /* Speed accelarate Kp period time */
+	uint16_t Speed_ACC_Gain;         /* 速度加速Kp增益 */
+	uint16_t Speed_ACC_Div;          /* 速度加速Kp分配器 */
+	uint16_t Speed_ACC_Count;        /* 速度加速Kp周期时间 */
 	
-	int16_t Encoder_Update_Count;    /* Encoder timer update count */ /* 没用到 */
-	bool Encoder_Direction;          /* Encoder runing direction */
-	bool Encoder_Pre_Direction;      /* Encoder pre runing direction*/
+	int16_t Encoder_Update_Count;    /* 编码器定时器更新计数 */ /* 没用到 */
+	bool Encoder_Direction;          /* 编码器运行方向 */
+	bool Encoder_Pre_Direction;      /* 编码器预运行方向 */
 	
-	bool Mode_Flag;                  /* Mode_Flag = 1, under torque mode, Mode_Flag = 0,under speed mode */
-	bool Torque_First_Flag;          /* First torque mode flag */
+	bool Mode_Flag;                  /* 转矩模式下Mode_Flag = 1，速度模式下Mode_Flag = 0 */
+	bool Torque_First_Flag;          /* 第一个扭矩模式标志 */
 } Position_Handle_t;
 
 /* Define mode */
 #define P_TORQUE_MODE 1
 #define P_SPEED_MODE  0
 
-/* Do ACC duration calculate rate: (Speed loop time * SPEED_ACC_RATE) */
+/* 执行ACC持续时间计算速率:(速度循环时间* SPEED_ACC_RATE) */
 #define SPEED_ACC_RATE 20
 
 #define _IQ24(A) (long) ((A) * 16777216.0L)
@@ -57,7 +57,7 @@ typedef struct
 /* PI_MUL = 2*PI*10000 */
 #define PI_MUL 62832
 
-/* Define low delta angle and high delta angle, used for control mode change */
+/* 定义低 dt 角和高 dt 角,用于控制模式的改变 */
 #define CHANGE_LIMIT_LOW  628320
 #define CHANGE_LIMIT_HIGH 628320*2//62832*2
 

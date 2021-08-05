@@ -8,11 +8,14 @@
   ******************************************************************************
   */
 
+/* 这个位置环做的很流氓 */
+
 /* Includes ------------------------------------------------------------------*/
 #include "mc_position.h"
 
 
-/* Define and initial positi0n structure */
+
+/* 定义初始位置结构 */
 Position_Handle_t Position_M1 =
 {
   .Position_Gain         = 1,
@@ -31,7 +34,7 @@ Position_Handle_t Position_M1 =
 };
 
 /**
-  * @brief  PI / PID position parameters Motor 1
+  * @brief  PI / PID 位置参数
   */
 #define PID_ANGLE_KP_DEFAULT 3000
 #define AG_KPDIV 2048
@@ -45,7 +48,7 @@ Position_Handle_t Position_M1 =
 #define AG_KDDIV 16384
 #define AG_KDDIV_LOG 14
 
-/* Define Position Iq position max = 30% IQMAX, in this demo IQMAX = 16000*/
+/* 定义位置 Iq 最大值 = 30% IQMAX, in this demo IQMAX = 16000*/
 #define IQ_POSITION 4000
 
 PID_Handle_t PIDAngleHandle_M1 =
@@ -66,7 +69,7 @@ PID_Handle_t PIDAngleHandle_M1 =
 };
 
 /**
-  * @brief  It return absolute value of input
+  * @brief  返回输入的绝对值
   * @param  dat: input data
   * @retval absolute value
   */
@@ -85,7 +88,7 @@ uint32_t Abs_Value(int32_t dat)
 }
 
 /**
-  * @brief  Return error angle unit in rad*10000
+  * @brief  返回误差角度单位在 rad*10000
   * @param  angle_ref: Target angle
   * @retval error angle
   */
@@ -95,32 +98,33 @@ int32_t Position_GetErrorAngle(Abs_Encoder_Handle_t * pHandle, int32_t angle_ref
 	
   Position_M1.hTargetAngle = (int32_t)angle_ref;
 	
-	/* Measure angle = count*2PI*10000 + Mec_Angle*2PI*10000/65536 
-	*/
+	/* 测量角度 = count*2PI*10000 + Mec_Angle*2PI*10000/65536 */
+  /* 当前角度 = 旋转的圈数 * 单位系数 + 当前角度计数 * 单位系数 / 计数最大值 */
   wAngle = (int32_t)(pHandle->Circle_Counter)*PI_MUL + (int32_t)(pHandle->Encoder_MecAngle)*PI_MUL/65536;
 	
 	Position_M1.hMeasuredAngle = wAngle;	
 	
-	/* Compute angle error */
+	/* 计算角度误差 */
   Position_M1.hError_Angle = Position_M1.hTargetAngle - Position_M1.hMeasuredAngle;
 	
-	/* If enter target range of position, then change to Torque mode */
+	/* 如果进入目标位置范围，则切换到扭矩模式 */
 	if(Abs_Value(Position_M1.hError_Angle) < CHANGE_LIMIT_LOW)
 	{
 		Position_M1.Mode_Flag = P_TORQUE_MODE;
 	}
-	/* Else if motor run in speed mode */
+	/* 否则电机运行在速度模式 */
 	else if(Abs_Value(Position_M1.hError_Angle) > CHANGE_LIMIT_HIGH)
 	{
 		Position_M1.Mode_Flag = P_SPEED_MODE;
 		Position_M1.Torque_First_Flag = 0;
 	}
 	
+  /* 返回误差角 */
 	return  Position_M1.hError_Angle;
 }
 
 /**
-  * @brief  It computes the new values for max speed
+  * @brief  计算最大速度的新值
   * @param  None
   * @retval Speed referrence
   */
@@ -128,9 +132,10 @@ int16_t Position_CalcSpeedReferrence(void)
 {
 	int32_t hSpeedReference = 0;
 	
+  /* 速度参考 = 误差角 * 增益分子 / 增益分母 */
 	hSpeedReference = Position_M1.hError_Angle * Position_M1.Position_Gain / Position_M1.Postiion_Div;
 	
-	/* Limit max referrence speed*/
+	/* 限制最大引用速度 */
 	if(hSpeedReference > MOTOR_MAX_SPEED_RPM)
 	{
 		hSpeedReference = MOTOR_MAX_SPEED_RPM;
@@ -140,11 +145,12 @@ int16_t Position_CalcSpeedReferrence(void)
 		hSpeedReference = -MOTOR_MAX_SPEED_RPM;
 	}
 
+  /* 返回新的速度参考 */
   return (int16_t)hSpeedReference;
 }
 
 /**
-  * @brief  It computes the new values current referrence
+  * @brief  它计算当前电流的新值
   * @param  target angle
   * @retval Iqref
   */

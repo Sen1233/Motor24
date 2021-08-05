@@ -546,35 +546,41 @@ void TSK_MediumFrequencyTaskM1(void)
     /* USER CODE BEGIN MediumFrequencyTask M1 2 */
 #if defined(POSITION_CONTROL)
 		//---Ken An add---//
-		/* Get error position/Angle, unit in rad*10000 */
+		/* 获取误差位置/角度，单位为rad*10000 */
 		Position_GetErrorAngle(&Abs_Encoder_M1,Target_Angle);
 	
-		/* If in speed control mode */
+		/* 速度控制模式执行 */
 		if(Position_M1.Mode_Flag == P_SPEED_MODE)
 		{
 			Position_M1.Set_Speed = Position_CalcSpeedReferrence();
 		}
 
-		/* Change mode to current mode */
+		/* 电流控制模式, 且切换到电流控制时第一次执行到此处 */
 		if((Position_M1.Mode_Flag == P_TORQUE_MODE) && (Position_M1.Torque_First_Flag == 0))
 		{
 			qd_t temp_qd;
-			/* Get current Iqref value */
+			/* 获取当前的电流参考值, Id, Iq */
 			temp_qd = MC_GetIqdrefMotor1();
+      /* 设置控制力矩 */
 			MC_ProgramTorqueRampMotor1(temp_qd.q,0);
+      /* 完成一次执行, 设置标志位 */
 			Position_M1.Torque_First_Flag = 1;	
+      /* 给位置环PID设置新的积分增益 */
 			PID_SetIntegralTerm(&PIDAngleHandle_M1,0);
 		}
 	
 		Position_M1.Speed_ACC_Count++;
-		/* In speed control mode, calculate speed accelarate time, aslo excute speed ramp */
+		/* 在速度控制模式，计算速度加速时间，也执行速度斜坡 */
+    /* 使用20ms的周期执行速度控制 */
 		if((Position_M1.Speed_ACC_Count > SPEED_ACC_RATE) && (Position_M1.Mode_Flag == P_SPEED_MODE))
 		{
 			Position_M1.Speed_ACC_Count = 0;
-			Position_M1.Control_Speed = MC_GetLastRampFinalSpeedMotor1(); // Get setting speed value
-			Position_M1.Real_Speed = MC_GetMecSpeedAverageMotor1();	// Get average speed
+			Position_M1.Control_Speed = MC_GetLastRampFinalSpeedMotor1(); // 获取速度值
+			Position_M1.Real_Speed = MC_GetMecSpeedAverageMotor1();	// 获取平均速度
+      /* 下面这条没看懂什么含义 */
 			Position_M1.Duration_ms = (uint16_t)(Abs_Value(Position_M1.Control_Speed - Position_M1.Real_Speed) * Position_M1.Speed_ACC_Gain / Position_M1.Speed_ACC_Div);
 			
+      /* 设置速度斜率控制 */
 			MC_ProgramSpeedRampMotor1(Position_M1.Set_Speed/6,Position_M1.Duration_ms);
 		}
 #endif
